@@ -20,9 +20,9 @@ This project implements a minimal multi-client chat server/client pair where eve
 1. **Encrypted** with AES via [`pyAesCrypt`](https://pypi.org/project/pyAesCrypt/), then
 2. **Compressed** with `zlib` before it ever touches the socket.
 
-Compressing *after* encryption keeps frames small and shapes traffic away from the easily-fingerprinted plaintext-then-encrypt pattern — the kind of thing worth understanding when studying how command-and-control or exfiltration channels try to blend in on the wire. To a passive observer sniffing the socket, each frame is just a blob of compressed, encrypted bytes with no visible structure.
+Compressing *after* encryption keeps frames small and shapes traffic away from the easily-fingerprinted plaintext-then-encrypt pattern, which matters when studying how command-and-control or exfiltration channels try to blend in on the wire. To a passive observer sniffing the socket, each frame is just a blob of compressed, encrypted bytes with no visible structure.
 
-This is a research/education project for understanding encrypted-channel design, not a hardened production messaging system — see [Known Limitations](#known-limitations) below before relying on it for anything sensitive.
+This is a research/education project for understanding encrypted-channel design, not a hardened production messaging system. See [Known Limitations](#known-limitations) below before relying on it for anything sensitive.
 
 > ## ⚠️ Intended Use
 > Built for authorized security research, red-team exercises, and learning about covert channel design in lab environments you own or are explicitly authorized to test in. Don't point it at systems or networks you don't control.
@@ -33,8 +33,6 @@ This is a research/education project for understanding encrypted-channel design,
 - 📦 **Post-encryption zlib compression** to minimize on-wire footprint
 - 👥 **Multi-client server** with per-client alias support
 - 🖥️ **Cross-platform client** (Linux/macOS/Windows)
-
----
 
 ## Requirements
 
@@ -90,15 +88,13 @@ PDiddy@covert~# Hello World!
 PDiddy@covert~#
 ```
 
----
-
 ## Known Limitations
 
 This is a proof-of-concept, not a hardened tool. Before using it for anything beyond a lab:
 
-- **The AES password is hardcoded** (`"secret"`) in both `client.py` and `server.py`. Anyone with the source has the key — change it to a value shared out-of-band before relying on confidentiality.
-- **No authentication** — any client that can reach the port can join and broadcast.
-- **No transport integrity checks** beyond what AES/zlib provide incidentally — there's no message authentication (MAC) layer.
+- **The AES password is hardcoded** (`"secret"`) in both `client.py` and `server.py`. Anyone with the source has the key, so change it to a value shared out-of-band before relying on confidentiality.
+- **No authentication**: any client that can reach the port can join and broadcast.
+- **No transport integrity checks** beyond what AES/zlib provide incidentally. There's no message authentication (MAC) layer.
 
 If you build on this, parameterizing the password (env var / CLI flag) and adding per-session key exchange are the first things worth fixing.
 
