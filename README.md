@@ -27,6 +27,24 @@ This is a research/education project for understanding encrypted-channel design,
 > ## ⚠️ Intended Use
 > Built for authorized security research, red-team exercises, and learning about covert channel design in lab environments you own or are explicitly authorized to test in. Don't point it at systems or networks you don't control.
 
+## How It Works
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C: plaintext message
+    C->>C: AES encrypt (pyAesCrypt)
+    C->>C: zlib compress
+    C->>S: compressed ciphertext
+    S->>S: zlib decompress
+    S->>S: AES decrypt
+    Note over S: plaintext, broadcast to other clients
+```
+
+Encrypting before compressing (rather than the more common compress-then-encrypt) means a passive observer sniffing the socket only ever sees a blob of high-entropy bytes, no plaintext structure to fingerprint, and no separate "compression" and "encryption" layers to distinguish from each other.
+
 ## Features
 
 - 🔐 **AES encryption** on every message, in both directions
@@ -77,15 +95,32 @@ python3 client.py
 
 ### Example Session
 
+Two clients connected to the same server, chatting over the encrypted channel:
+
 ```
 $ python3 client.py
 Connected to 127.0.0.1:9001
 [*] Enter the alias you wish to go by
-:> PDiddy
-[+] You are now known as PDiddy
-PDiddy@covert~# Hello World!
-[Server]:PDiddy:> Hello World!
-PDiddy@covert~#
+:> 0xjb
+[+] You are now known as 0xjb
+0xjb@covert~# hey, you on?
+[Server]:sh4dow:> yeah, just watching the traffic on wireshark
+0xjb@covert~# nice, what's it look like on the wire?
+[Server]:sh4dow:> just compressed ciphertext, no plaintext markers at all
+0xjb@covert~#
+```
+
+```
+$ python3 client.py
+Connected to 127.0.0.1:9001
+[*] Enter the alias you wish to go by
+:> sh4dow
+[+] You are now known as sh4dow
+[Server]:0xjb:> hey, you on?
+sh4dow@covert~# yeah, just watching the traffic on wireshark
+[Server]:0xjb:> nice, what's it look like on the wire?
+sh4dow@covert~# just compressed ciphertext, no plaintext markers at all
+sh4dow@covert~#
 ```
 
 ## Known Limitations
